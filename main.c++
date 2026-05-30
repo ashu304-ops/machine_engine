@@ -18,7 +18,11 @@ class orderbook{
 
     public:
         void addbuy(int id,int price,int quantity){
-        cout<<"buyers side"<<" "<<"id"<<" "<<id<<" "<<"price"<<" "<<price<<"quantity"<<" "<<quantity<<endl;
+        cout << "BUY ORDER: "
+            << "ID=" << id
+            << " PRICE=" << price
+            << " QTY=" << quantity
+            << endl;
         //match against sell order
         while(quantity>0&&!sellbook.empty()){
             auto bestsell=sellbook.begin();
@@ -28,7 +32,11 @@ class orderbook{
             while(quantity>0&&!bestsell->second.empty()){
                 orders& sellorder=bestsell->second.front();
                 int traded=min(quantity,sellorder.quantity);
-                cout<<"Trade qauntity"<<traded<<"@"<<bestsell->first;
+                cout << "TRADE: "
+                        << traded
+                        << " @ "
+                        << bestsell->first
+                        << endl;
                 quantity-=traded;
                 sellorder.quantity-=traded;
                 if(sellorder.quantity==0){
@@ -48,7 +56,11 @@ class orderbook{
 
         }
         void addsell(int id,int price,int quantity){
-            cout<<"seller side"<<" "<<"id"<<" "<<id<<" "<<"price"<<" "<<price<<"quantity"<<" "<<quantity<<endl;
+            cout << "SELL ORDER: "
+                    << "ID=" << id
+                    << " PRICE=" << price
+                    << " QTY=" << quantity
+                    << endl;
             //buy price >=sell price in this case price is seller reject case price<buy price
             while(quantity>0&&!buybook.empty()){
                 auto buy=buybook.begin();
@@ -59,7 +71,11 @@ class orderbook{
                 while(quantity>0&&!buy->second.empty()){
                     orders& buyorder=buy->second.front();
                     int traded=min(quantity,buyorder.quantity);
-                    cout<<"Trade qauntity"<<traded<<"@"<<buy->first;
+                    cout << "TRADE: "
+                        << traded
+                        << " @ "
+                        << buy->first
+                        << endl;
                     quantity-=traded;
                     buyorder.quantity-=traded;
                     
@@ -77,7 +93,10 @@ class orderbook{
             }
         }
         void printbook(){
+            cout<<"-------------------------------------"<<endl;
             cout<<"order book"<<endl;
+            cout<<"-------------------------------------"<<endl;
+
             cout<<"Sell book"<<endl;
             for(auto &p:sellbook){
                 cout<<"price"<<" "<<p.first;
@@ -88,7 +107,7 @@ class orderbook{
                 }
                 cout<<endl;
             }
-            cout<<"buy book"<<endl;
+            cout<<"Buy book"<<endl;
             for(auto &p:buybook){
                 cout<<"price"<<" "<<p.first;
                 queue<orders>q=p.second;
@@ -101,7 +120,7 @@ class orderbook{
             
         }
         void cancel_order(int id){
-            cout<<"cancelling order with order id"<<id;
+            cout << "\nCANCEL ORDER ID=" << id << endl;
             //looking on buybook side
             for(auto &p:buybook){
                 queue<orders>q;
@@ -112,7 +131,7 @@ class orderbook{
                     if(ord.id!=id){
                         q.push(ord);
                     }else{
-                        cout<<"cancelled the order"<<"@ ID"<<ord.id<<endl;
+                        cout << "ORDER CANCELLED: ID=" << ord.id << endl;
                     }
                 }
                 p.second=q;
@@ -128,11 +147,77 @@ class orderbook{
                     if(ord.id!=id){
                         q.push(ord);
                     }else{
-                        cout<<"cancelling orders"<<"@"<<ord.id<<endl;
+                        cout << "ORDER CANCELLED: ID=" << ord.id << endl;
                     }
                 }
                 p.second=q;
             }
+        }
+        void addmarketbuy(int id,int quantity){
+            cout << "\nMARKET BUY: "
+                    << "ID=" << id
+                    << " QTY=" << quantity
+                    << endl;
+            while(quantity>0&& !sellbook.empty()){
+                auto bestsell=sellbook.begin();
+                while(quantity>0&&!bestsell->second.empty()){
+                    orders &sellorder=bestsell->second.front();
+                    int traded=min(quantity,sellorder.quantity);
+                    cout << "TRADE: "
+                            << traded
+                            << " @ "
+                            << bestsell->first
+                            << endl;
+                    quantity-=traded;
+                    sellorder.quantity-=traded;
+
+                    if(sellorder.quantity==0){
+                        bestsell->second.pop();
+                    }
+                    
+
+                }
+                if(bestsell->second.empty()){
+                        sellbook.erase(bestsell);
+                        continue;
+                    }
+                
+            }
+            if(quantity>0){
+                    cout << "UNFILLED MARKET BUY QTY="
+                            << quantity
+                            << endl;
+                }
+        }
+        void addmarketsell(int id,int quantity){
+            cout << "\nMARKET SELL: "
+                << "ID=" << id
+                << " QTY=" << quantity
+                << endl;
+            while(quantity>0&&!buybook.empty()){
+                auto bestbuy=buybook.begin();
+                while(quantity>0&&!bestbuy->second.empty()){
+                    orders &buyorder=bestbuy->second.front();
+                    int traded=min(quantity,buyorder.quantity);
+                    quantity-=traded;
+                    buyorder.quantity-=traded;
+
+                    if(buyorder.quantity==0){
+                        bestbuy->second.pop();
+                    }
+                }
+                if(bestbuy->second.empty()){
+                        buybook.erase(bestbuy);
+                        continue;
+                    }
+                
+
+            }
+            if(quantity>0){
+                    cout << "UNFILLED MARKET SELL QTY="
+                        << quantity
+                        << endl;
+                }
         }
         
 };
@@ -148,6 +233,9 @@ int main(){
     ob.addsell(8,109,4);
     ob.addsell(6,108,8);
     ob.addsell(2,106,5);
+
+    ob.addmarketbuy(7,9);
+    ob.addmarketsell(6,5);
 
     ob.printbook();
 

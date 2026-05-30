@@ -4,11 +4,16 @@
 #include<string>
 #include<cmath>
 #include<algorithm>
+#include <chrono>
+#include <ctime>
+#include <iomanip>
+#include <sstream>
 using namespace std;
 
 struct orders{
     int id;
     int quantity;
+    string timestamp;
 };
 
 class orderbook{
@@ -33,10 +38,10 @@ class orderbook{
                 orders& sellorder=bestsell->second.front();
                 int traded=min(quantity,sellorder.quantity);
                 cout << "TRADE: "
-                        << traded
-                        << " @ "
-                        << bestsell->first
-                        << endl;
+                    << traded
+                    << " @ " << bestsell->first
+                    << " | SELL_TS=" << sellorder.timestamp
+                    << endl;
                 quantity-=traded;
                 sellorder.quantity-=traded;
                 if(sellorder.quantity==0){
@@ -50,7 +55,7 @@ class orderbook{
     }
         //remaining to book
                 if(quantity>0){
-                    buybook[price].push({id,quantity});
+                    buybook[price].push({id, quantity, getTimeNow()});
                 }
 
 
@@ -73,8 +78,8 @@ class orderbook{
                     int traded=min(quantity,buyorder.quantity);
                     cout << "TRADE: "
                         << traded
-                        << " @ "
-                        << buy->first
+                        << " @ " << buy->first
+                        << " | BUY_TS=" << buyorder.timestamp
                         << endl;
                     quantity-=traded;
                     buyorder.quantity-=traded;
@@ -89,7 +94,7 @@ class orderbook{
                     }
             }
             if(quantity>0){
-                sellbook[price].push({id,quantity});
+                sellbook[price].push({id, quantity, getTimeNow()});
             }
         }
         void printbook(){
@@ -112,7 +117,8 @@ class orderbook{
                     <<"Volume:"<<totalVolume;
 
                 while(!q.empty()){
-                    cout<<"quantity"<<q.front().quantity<<" ";
+                    cout<<"quantity"<<q.front().quantity
+                        <<"TS= "<<q.front().timestamp;
                     q.pop();
                 }
                 cout<<endl;
@@ -132,7 +138,9 @@ class orderbook{
                     <<"Volume:"<<totalVolume;
 
                 while(!q.empty()){
-                    cout<<"qauntity"<<q.front().quantity<<" ";
+                    cout<<"qauntity"<<q.front().quantity
+                        <<"TS= "<<q.front().timestamp<<endl;
+
                     q.pop();
                 }
                 cout<<endl;
@@ -239,6 +247,19 @@ class orderbook{
                         << endl;
                 }
         }
+    string getTimeNow(){
+    using namespace chrono;
+
+    auto now = system_clock::now();
+    time_t now_time = system_clock::to_time_t(now);
+
+    tm *ltm = std::localtime(&now_time);
+
+    stringstream ss;
+    ss << put_time(ltm, "%Y-%m-%d %H:%M:%S");
+
+    return ss.str();
+}
         
 };
 

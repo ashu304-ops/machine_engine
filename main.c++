@@ -101,6 +101,16 @@ class orderbook{
             for(auto &p:sellbook){
                 cout<<"price"<<" "<<p.first;
                 queue<orders>q=p.second;
+                
+                int totalVolume=0;
+                queue<orders>temp=q;
+                while(!temp.empty()){
+                    totalVolume+=temp.front().quantity;
+                    temp.pop();
+                }
+                cout<<"Price:"<<p.first
+                    <<"Volume:"<<totalVolume;
+
                 while(!q.empty()){
                     cout<<"quantity"<<q.front().quantity<<" ";
                     q.pop();
@@ -111,6 +121,16 @@ class orderbook{
             for(auto &p:buybook){
                 cout<<"price"<<" "<<p.first;
                 queue<orders>q=p.second;
+
+                int totalVolume=0;
+                queue<orders>temp=q;
+                while(!temp.empty()){
+                    totalVolume+=temp.front().quantity;
+                    temp.pop();
+                }
+                cout<<"Price:"<<p.first
+                    <<"Volume:"<<totalVolume;
+
                 while(!q.empty()){
                     cout<<"qauntity"<<q.front().quantity<<" ";
                     q.pop();

@@ -100,6 +100,40 @@ class orderbook{
             }
             
         }
+        void cancel_order(int id){
+            cout<<"cancelling order with order id"<<id;
+            //looking on buybook side
+            for(auto &p:buybook){
+                queue<orders>q;
+                while(!p.second.empty()){
+                    orders ord=p.second.front();
+                    p.second.pop();
+
+                    if(ord.id!=id){
+                        q.push(ord);
+                    }else{
+                        cout<<"cancelled the order"<<"@ ID"<<ord.id<<endl;
+                    }
+                }
+                p.second=q;
+
+            }
+            //looking on sellbook
+            for(auto &p:sellbook){
+                queue<orders>q;
+                while(!p.second.empty()){
+                    orders ord=p.second.front();
+                    p.second.pop();
+
+                    if(ord.id!=id){
+                        q.push(ord);
+                    }else{
+                        cout<<"cancelling orders"<<"@"<<ord.id<<endl;
+                    }
+                }
+                p.second=q;
+            }
+        }
         
 };
 
@@ -110,6 +144,7 @@ int main(){
     ob.addbuy(2,104,3);
     ob.addbuy(3,108,8);
 
+    ob.cancel_order(2);
     ob.addsell(8,109,4);
     ob.addsell(6,108,8);
     ob.addsell(2,106,5);

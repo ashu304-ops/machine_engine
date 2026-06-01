@@ -8,6 +8,7 @@
 #include <ctime>
 #include <iomanip>
 #include <sstream>
+#include<random>
 using namespace std;
 
 struct orders{
@@ -288,26 +289,49 @@ class orderbook{
         
 };
 
-int main(){
+#include <random>
+
+int main() {
 
     orderbook ob;
-    ob.addbuy(1,102,5);
-    ob.addbuy(2,104,3);
-    ob.addbuy(3,108,8);
 
-    ob.cancel_order(2);
-    ob.addsell(8,109,4);
-    ob.addsell(6,108,8);
-    ob.addsell(2,106,5);
+    mt19937 rng(time(nullptr));
 
-    ob.addmarketbuy(7,9);
-    ob.addmarketsell(6,5);
+    uniform_int_distribution<int> sideDist(0, 1);      // 0=buy, 1=sell
+    uniform_int_distribution<int> priceDist(90, 110);  // prices
+    uniform_int_distribution<int> qtyDist(1, 100);     // quantities
+
+    const int N = 100;
+
+    auto start = chrono::high_resolution_clock::now();
+
+    for (int i = 1; i <= N; i++) {
+
+        int side = sideDist(rng);
+        int price = priceDist(rng);
+        int qty = qtyDist(rng);
+
+        if (side == 0) {
+            ob.addbuy(i, price, qty);
+        } else {
+            ob.addsell(i, price, qty);
+        }
+    }
+
+    auto end = chrono::high_resolution_clock::now();
+
+    auto duration =
+        chrono::duration_cast<chrono::milliseconds>(end - start);
+
+    cout << "\n====================================\n";
+    cout << "Processed " << N << " orders\n";
+    cout << "Time: " << duration.count() << " ms\n";
+    cout << "Orders/sec: "
+         << (N * 1000.0 / duration.count())
+         << "\n";
+    cout << "====================================\n";
 
     ob.printbook();
 
-
-
+    return 0;
 }
-
-
-

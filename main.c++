@@ -22,6 +22,20 @@ class orderbook{
         map<int,queue<orders> > sellbook;
 
     public:
+        string getTimeNow(){
+        using namespace chrono;
+
+        auto now = system_clock::now();
+        time_t now_time = system_clock::to_time_t(now);
+
+        tm *ltm = std::localtime(&now_time);
+
+        stringstream ss;
+        ss << put_time(ltm, "%Y-%m-%d %H:%M:%S");
+
+        return ss.str();
+    }
+
         void addbuy(int id,int price,int quantity){
         cout << "BUY ORDER: "
             << "ID=" << id
@@ -182,83 +196,94 @@ class orderbook{
             }
         }
         void addmarketbuy(int id,int quantity){
-            cout << "\nMARKET BUY: "
-                    << "ID=" << id
-                    << " QTY=" << quantity
-                    << endl;
-            while(quantity>0&& !sellbook.empty()){
-                auto bestsell=sellbook.begin();
-                while(quantity>0&&!bestsell->second.empty()){
-                    orders &sellorder=bestsell->second.front();
-                    int traded=min(quantity,sellorder.quantity);
-                    cout << "TRADE: "
-                            << traded
-                            << " @ "
-                            << bestsell->first
-                            << endl;
-                    quantity-=traded;
-                    sellorder.quantity-=traded;
+    string market_ts = getTimeNow();
 
-                    if(sellorder.quantity==0){
-                        bestsell->second.pop();
-                    }
-                    
+    cout << "\nMARKET BUY: "
+         << "ID=" << id
+         << " QTY=" << quantity
+         << " TS=" << market_ts
+         << endl;
 
-                }
-                if(bestsell->second.empty()){
-                        sellbook.erase(bestsell);
-                        continue;
-                    }
-                
+    while(quantity>0 && !sellbook.empty()){
+        auto bestsell=sellbook.begin();
+
+        while(quantity>0 && !bestsell->second.empty()){
+            orders &sellorder=bestsell->second.front();
+
+            int traded=min(quantity,sellorder.quantity);
+
+            cout << "TRADE: "
+                 << traded
+                 << " @ " << bestsell->first
+                 << " | MARKET_BUY_TS=" << market_ts
+                 << " | SELL_TS=" << sellorder.timestamp
+                 << endl;
+
+            quantity-=traded;
+            sellorder.quantity-=traded;
+
+            if(sellorder.quantity==0){
+                bestsell->second.pop();
             }
-            if(quantity>0){
-                    cout << "UNFILLED MARKET BUY QTY="
-                            << quantity
-                            << endl;
-                }
         }
+
+        if(bestsell->second.empty()){
+            sellbook.erase(bestsell);
+            continue;
+        }
+    }
+
+    if(quantity>0){
+        cout << "UNFILLED MARKET BUY QTY="
+             << quantity
+             << " TS=" << market_ts
+             << endl;
+    }
+}
         void addmarketsell(int id,int quantity){
-            cout << "\nMARKET SELL: "
-                << "ID=" << id
-                << " QTY=" << quantity
-                << endl;
-            while(quantity>0&&!buybook.empty()){
-                auto bestbuy=buybook.begin();
-                while(quantity>0&&!bestbuy->second.empty()){
-                    orders &buyorder=bestbuy->second.front();
-                    int traded=min(quantity,buyorder.quantity);
-                    quantity-=traded;
-                    buyorder.quantity-=traded;
+    string market_ts = getTimeNow();
 
-                    if(buyorder.quantity==0){
-                        bestbuy->second.pop();
-                    }
-                }
-                if(bestbuy->second.empty()){
-                        buybook.erase(bestbuy);
-                        continue;
-                    }
-                
+    cout << "\nMARKET SELL: "
+         << "ID=" << id
+         << " QTY=" << quantity
+         << " TS=" << market_ts
+         << endl;
 
+    while(quantity>0 && !buybook.empty()){
+        auto bestbuy=buybook.begin();
+
+        while(quantity>0 && !bestbuy->second.empty()){
+            orders &buyorder=bestbuy->second.front();
+
+            int traded=min(quantity,buyorder.quantity);
+
+            cout << "TRADE: "
+                 << traded
+                 << " @ " << bestbuy->first
+                 << " | MARKET_SELL_TS=" << market_ts
+                 << " | BUY_TS=" << buyorder.timestamp
+                 << endl;
+
+            quantity-=traded;
+            buyorder.quantity-=traded;
+
+            if(buyorder.quantity==0){
+                bestbuy->second.pop();
             }
-            if(quantity>0){
-                    cout << "UNFILLED MARKET SELL QTY="
-                        << quantity
-                        << endl;
-                }
         }
-    string getTimeNow(){
-    using namespace chrono;
 
-    auto now = system_clock::now();
-    time_t now_time = system_clock::to_time_t(now);
+        if(bestbuy->second.empty()){
+            buybook.erase(bestbuy);
+            continue;
+        }
+    }
 
-    tm *ltm = std::localtime(&now_time);
-
-    stringstream ss;
-    ss << put_time(ltm, "%Y-%m-%d %H:%M:%S");
-
-    return ss.str();
+    if(quantity>0){
+        cout << "UNFILLED MARKET SELL QTY="
+             << quantity
+             << " TS=" << market_ts
+             << endl;
+    }
 }
         
 };
